@@ -79,13 +79,18 @@ class SentinelClient(DefaultClient):
         if SentinelClass is None:
             SentinelClass = Sentinel
         self.log.debug("connect called: write=%s", write)
-        master_name, sentinel_hosts, db = self.parse_connection_string(self._connection_string)
+        master_name, sentinel_hosts, db = self.parse_connection_string(self._connection_string)p       
 
         sentinel_timeout = self._options.get('SENTINEL_TIMEOUT', 1)
+        redis_timeout = self._options.get('REDIS_TIMEOUT', 1)
         password = self._options.get('PASSWORD', None)
         sentinel = SentinelClass(sentinel_hosts,
-                                 socket_timeout=sentinel_timeout,
-                                 password=password)
+                                 socket_timeout=redis_timeout,
+                                 password=password,
+                                 sentinel_kwargs={
+                                     'password': self._options.get('SENTINEL_PASSWORD', None),
+                                     'socket_timeout': sentinel_timeout
+                                 })
 
         if write:
             host, port = sentinel.discover_master(master_name)
